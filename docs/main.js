@@ -1,7 +1,7 @@
 const myId = (new MediaStream).id;
 console.log(`myId:${myId}`);
 let stream = null;
-const skywayApiKey = 'a97d4706-42d0-4385-861d-6639d28adb62';
+const skywayApiKey = 'bea1e09a-a7f9-41fb-8700-e6d18ba907bd';
 const roomName = 'hoge_fuga_piyo_sfu';
 function appendVideo(stream) {
     const video = document.createElement('video');
@@ -20,7 +20,7 @@ navigator.mediaDevices.getUserMedia(constraints).then(stream => {
     });
     peer.on('open', id => {
         myIdDisp.textContent = id;
-        const room = peer.joinRoom(roomName, { mode: 'sfu', stream });
+        const room = peer.joinRoom(roomName, { mode: 'sfu', stream, videoBandwidth: 2048 });
         room.on('open', peerId => {
             const dummyPeer = new Peer({ key: skywayApiKey });
             dummyPeer.on('open', _ => {
