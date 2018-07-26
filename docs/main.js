@@ -1,6 +1,8 @@
 const myId = (new MediaStream).id;
 console.log(`myId:${myId}`);
 let stream = null;
+const skywayApiKey = 'a97d4706-42d0-4385-861d-6639d28adb62';
+const roomName = 'hoge_fuga_piyo_sfu';
 function appendVideo(stream) {
     const video = document.createElement('video');
     video.srcObject = stream;
@@ -8,18 +10,26 @@ function appendVideo(stream) {
     video.play();
 }
 const constraints = {
-    video: true,
-    // audio: true // オーディオを追加すると期待する挙動となる
+    video: true
 };
 navigator.mediaDevices.getUserMedia(constraints).then(stream => {
     console.log(`streamId:${stream.id}`);
     appendVideo(stream);
     const peer = new Peer(myId, {
-        key: 'a5e6294b-f6ef-4edf-93c6-161f92ae5e8e' // 1時間映像のみ送受信 (2人接続して、2人目が1人目の映像が表示されていない状態)
+        key: skywayApiKey 
     });
     peer.on('open', id => {
         myIdDisp.textContent = id;
-        const room = peer.joinRoom('hoge_fuga_piyo_sfu', { mode: 'sfu', stream });
+        const room = peer.joinRoom(roomName, { mode: 'sfu', stream });
+        room.on('open', peerId => {
+            const dummyPeer = new Peer({ key: skywayApiKey });
+            dummyPeer.on('open', _ => {
+                const dummyRoom = dummyPeer.joinRoom(roomName, { mode: 'sfu' });
+                dummyRoom.on('open', _ => dummyRoom.close());
+                dummyRoom.on('close', _ => dummyPeer.destroy());
+            });
+            dummyPeer.on('error', err => console.error(err));
+        });
         room.on('stream', stream => {
             console.log(`room on stream peerId:${stream.peerId}`);
             appendVideo(stream);
